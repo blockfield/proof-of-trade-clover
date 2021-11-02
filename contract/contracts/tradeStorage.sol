@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity 0.8.0;
 
 contract TradeStorage {
@@ -28,7 +30,7 @@ contract TradeStorage {
     
     function newTrader(string calldata email) external {
         traders.push(msg.sender);
-        emails[msg.sender] = email;
+        names[msg.sender] = email;
     }
     
     function addSignal(string calldata newSinal) external {
