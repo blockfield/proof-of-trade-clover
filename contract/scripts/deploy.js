@@ -12,7 +12,7 @@ async function main() {
     const TradeStorage = await ethers.getContractFactory("TradeStorage");
     const storage = await TradeStorage.deploy();
 
-    console.log("Lottery address:", storage.address);
+    console.log("TradeStorage address:", storage.address);
 }
 
 main()
