@@ -1,0 +1,52 @@
+<nav class="navbar navbar-expand-md navbar-dark bg-dark m-0">
+    <div class="row w-100 p-0 m-0">
+        <div class="col align-self-center m-0 p-0">
+            <div class="row m-0 p-0">
+                <div class="col-2 m-0 p-0 align-self-center text-center rounded-circle brand" (click)="goToHome()">
+                    <img class="icon" src="./assets/pot-icon-inverted.png"/>
+                </div>
+                <div class="col-10 align-self-center brand" (click)="goToHome()">
+                    <a class="navbar-brand">Proof of Trade</a>
+                </div>
+            </div>
+        </div>
+        <div class="col align-self-center m-0 p-0">
+            <ng-container *ngIf="stateModel.state === 'user'; then userMenuTmpl"></ng-container>
+            <ng-container *ngIf="stateModel.state === 'trader'; then traderMenuTmpl"></ng-container>
+        </div>
+        <div class="col m-0 p-0">
+            <div class="row m-0 p-0 h-100">
+                <div class="col m-0 p-0 align-self-center text-center rounded-circle" (click)="goToHome()">
+                    <span *ngIf="btcPrice > 0" class="float-right text-light">
+                        BTC: ${{btcPrice | number : '1.0-0' | noComma}}
+                        <fa-icon *ngIf="lastBtcPrice <= btcPrice" style="color: darkgreen" [icon]="faArrowAltCircleUp"></fa-icon>
+                        <fa-icon *ngIf="lastBtcPrice > btcPrice" style="color: darkred" [icon]="faArrowAltCircleDown"></fa-icon>
+                    </span>
+                </div>
+            </div>         
+        </div>
+    </div>
+</nav>
+
+<ng-template #userMenuTmpl>
+    <btn
+        *ngFor="let item of menu.user"
+        class="btn btn-lg btn-outline-light rounded-0"
+        [ngClass]="{'active': stateModel.subState === item}"
+        (click)="goToSubState('user', item)"
+    >
+        {{menuText.user[item]}}
+    </btn>
+</ng-template>
+
+
+<ng-template #traderMenuTmpl>
+    <btn
+        *ngFor="let item of menu.trader"
+        class="btn btn-lg btn-outline-light rounded-0"
+        [ngClass]="{'active': stateModel.subState === item}"
+        (click)="goToSubState('trader', item)"
+    >
+        {{menuText.trader[item]}}
+    </btn>
+</ng-template>

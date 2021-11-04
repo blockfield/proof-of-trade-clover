@@ -1,0 +1,56 @@
+<h1 class="text-center">
+    Please, use only test wallets for demo!
+</h1>
+<div class="row">
+    <div class="col">
+        <div class="row">
+            <div class="col-md-6"></div>
+            <div class="col col-md-6 text-center border p-3">
+                <h3 class="text-center">Select existed wallets</h3>
+            </div>
+        </div>
+        <div class="row" *ngFor="let wallet of wallets">
+            <div class="col-md-6"></div>
+            <div class="col col-md-6 btn btn-lg btn-outline-dark text-center border" (click)="selectWallet(wallet)">
+                <span>{{wallet.name}}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="row">
+            <div class="col-md-6 text-center">
+                <form class="p-4 rounded shadow-lg bg-light" (ngSubmit)="addWallet()" #addWalletForm="ngForm">
+                    <div class="form-group text-center my-3">
+                        <h3>Create new wallet</h3>
+                    </div>
+                
+                    <div class="form-group row my-5">
+                        <div class="col-md input-group">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text col-form-label" for="name">Name</label>
+                            </div>
+                            <input required type="text" class="form-control" id="name" name="name" placeholder="Wallet name" [(ngModel)]="newWallet.name">
+                        </div>
+                    </div>
+                
+                    <div class="form-group row my-5">
+                        <div class="col-md input-group">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text col-form-label" for="privateKey">Private key</label>
+                            </div>
+                            <input required type="text" class="form-control" id="privateKey" name="privateKey" placeholder="0123...abcd" [(ngModel)]="newWallet.privateKey">
+                        </div>
+                    </div>
+                
+                    <div class="form-row justify-content-center my-3">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-info" [disabled]="!addWalletForm.form.valid">
+                                <span class="p-3">Create</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
