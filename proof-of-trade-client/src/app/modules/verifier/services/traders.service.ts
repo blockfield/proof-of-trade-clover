@@ -26,7 +26,7 @@ export class TradersService {
 
     let periodProofList = []
     for (let j = 0; j < Math.floor(trader.proofsCount / 10) + 1; j++) {
-      periodProofList = [...periodProofList, ...(await this.contract.getPeriodProofsPage(trader.address, j))]
+      periodProofList.push(await this.contract.internalGetPeriodProofs(trader.address, j))
     }
 
     let proof: ProofItem[] = []

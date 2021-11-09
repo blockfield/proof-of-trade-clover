@@ -58,16 +58,15 @@ export class TraderService {
   }
 
   private async getProof(): Promise<ProofItem[]> {
-    const trader = await this.contract.getTrader(null)
-
     let periodProofList: PeriodProofResponseInterface[] = []
-    for (let j = 0; j < Math.floor(trader.proofsCount / 10) + 1; j++) {
-      periodProofList = [...periodProofList, ...(await this.contract.getPeriodProofsPage(trader.address, j))]
+    const creationBlockNumber: bigint = BigInt(0)
+    for (let j = 0; j < await this.contract.getProofLen(this.walletService.getAddress()); j++) {
+      periodProofList.push(await this.contract.getPeriodProofs(this.walletService.getAddress(), j))
     }
 
     let proof: ProofItem[] = []
     let prevProofBalance = MathHelper.decimalDigitsNumber(SharedConsts.initialUsdBalance)
-    let prevTimestamp = await this.contract.getTimestampByBlockNumber(trader.creationBlockNumber)
+    let prevTimestamp = await this.contract.getTimestampByBlockNumber(creationBlockNumber)
     for (let i = 0; i < periodProofList.length; i++) {
       const periodProof = periodProofList[i]
 

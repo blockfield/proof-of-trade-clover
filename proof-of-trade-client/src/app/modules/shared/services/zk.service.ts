@@ -29,6 +29,7 @@ export class ZkService {
   }
 
   private async internalProve(proofModel: ProofModel): Promise<void> {
+    console.log('internal prove', proofModel)
     const address = this.walletService.getAddress()
     
     const len = await this.contract.getTradeLen()
@@ -84,10 +85,10 @@ export class ZkService {
   }
 
   private async internalVerify(address: string, proofId: number): Promise<boolean> {
-    const periodProof = await this.contract.getPeriodProofs(address, proofId)
+    const periodProof = await this.contract.internalGetPeriodProofs(address, proofId)
 
-    const a = await this.contract.getSignal(address, 2 * proofId)
-    const b = await this.contract.getSignal(address, 2 * proofId + 1)
+    const a = await this.contract.internalGetSignal(address, 2 * proofId)
+    const b = await this.contract.internalGetSignal(address, 2 * proofId + 1)
 
     const price_a = MathHelper.bigIntToFloorNumber(a.price)
     const price_b = MathHelper.bigIntToFloorNumber(b.price)
@@ -95,7 +96,7 @@ export class ZkService {
     
     let previousBalanceHash = '639470893622803446635721399483204517617715645899470263648676575355455357367'
     if (proofId !== 0) {
-        previousBalanceHash = (await this.contract.getPeriodProofs(address, proofId - 1)).newBalanceHash;
+        previousBalanceHash = (await this.contract.internalGetPeriodProofs(address, proofId - 1)).newBalanceHash;
     }
 
     const witnessVerify = new WitnessVerifyModel(

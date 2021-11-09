@@ -10,14 +10,12 @@ import { tradeContract } from "./abi/trade.contract";
     providedIn: 'root'
 })
 export class Contract implements SmartContractInterface {
-    private contractAddress: string = ''
+    private contractAddress: string = '6F9GsmMe9MWyBaRaEG7bsMUBn3e'
 
     private web3: Web3
 
     private publicKey: string
-    private privateKey: string
     private publicKeyBase58: string
-    private privateKeyBase58: string
     private lk: LikeLib
     private account: LikeLib.Account
     private contract: LikeLib.Contract
@@ -25,174 +23,346 @@ export class Contract implements SmartContractInterface {
     constructor(
         walletService: WalletService
     ) {
-        if (this.privateKeyBase58) {
+        if (this.publicKey) {
             return
         }
 
         walletService.address$.subscribe((privateKey: string) => {
-            if (this.privateKeyBase58 || !privateKey) {
+            if (!privateKey) {
                 return
             }
 
             this.web3 = new Web3((window as any).ethereum)
 
-            this.privateKey = privateKey
-            this.publicKey = this.web3.eth.accounts.privateKeyToAccount('0x' + privateKey).address.substring(2)
-            this.privateKeyBase58 = bs58.encode(Buffer.from(this.privateKey, 'hex'))
-            this.publicKeyBase58 = bs58.encode(Buffer.from(this.publicKey, 'hex'))
+            this.account = new LikeLib.Account(privateKey)
+            
+            this.publicKey = bs58.decode(this.account.getAddress()).toString('hex')
+            this.publicKeyBase58 = this.account.getAddress()
+
+            console.log('private public public58', privateKey, this.publicKey, this.publicKeyBase58)
 
             this.lk = new LikeLib("ws://localhost:50051")
-            this.account = new LikeLib.Account(privateKey)
             this.contract = LikeLib.Contract.deployed(this.lk, this.account, tradeContract.abi, this.contractAddress)
             this.contract._setupMethods(tradeContract.abi)
         })
     }
 
     async newTrader(email: string): Promise<void> {
-        // todo HOW DEFINE newTrader function below?
-        let tx = new LikeLib.Tx({
-            from: this.privateKeyBase58,
-            to: this.contractAddress, // todo WHO IS HERE?
-            amount: 0,
-            fee: 0,
-            timestamp: Math.floor(Date.now()/1000),
-            data: email // todo BASE64?
-        });
+        console.log('newTrader')
+        return new Promise((resolve, reject) => {
+            this.contract.newTrader(email, 0, 500000, function(err, info, hash) {
+                console.log('newTrader result:', err, info, hash)
+                if (err) {
+                    reject(err)
+                }
 
-        this.account.sign(tx)
-
-        this.lk.pushTransaction(tx, function(err, info) {
-            console.log('newTrader push transaction', err, info)
+                resolve()
+            })
         })
     }
 
     async addSignal(hash: string): Promise<void> {
-        // todo HOW DEFINE addSignal function below?
-        let tx = new LikeLib.Tx({
-            from: this.privateKeyBase58,
-            to: this.contractAddress, // todo WHO IS HERE?
-            amount: 0,
-            fee: 0,
-            timestamp: Math.floor(Date.now()/1000),
-            data: hash // todo BASE64?
-        });
+        console.log('addSignal')
+        return new Promise((resolve, reject) => {
+            this.contract.addSignal(hash, 0, 500000, function(err, info, hash) {
+                console.log('addSignal result:', err, info, hash)
+                if (err) {
+                    reject(err)
+                }
 
-        this.account.sign(tx)
-
-        this.lk.pushTransaction(tx, function(err, info) {
-            console.log('newTrader push transaction', err, info)
+                resolve()
+            })
         })
     }
 
     async getTradeLen(): Promise<number> {
-        return new Promise((resolve) => {
-            this.contract.getTradeLen(this.publicKey, 0, 50000, function(err, result, hash) {
-                console.log('in getTradeLen abi method', err, result, hash)
+        console.log('getTradeLen')
 
-                resolve(null)
+        const publicKey = bs58.decode(this.account.getAddress()).toString('hex')
+
+        return new Promise((resolve) => {
+            this.contract.getTradeLen('0x' + publicKey, 0, 500000, function(err, result, hash) {
+                console.log('getTradeLen result:', err, result, hash)
+
+                if (err || !result[0]) {
+                    resolve(0)
+                    return
+                }
+
+                resolve(+result[0])
+            })
+        })
+    }
+
+    async internalGetSignal(address: string, index: number): Promise<SignalResponseInterface> {
+        console.log('internalGetSignal')
+
+        return new Promise((resolve) => {
+            this.contract.signals(address, index, 0, 500000, function(err, result, hash) {
+                console.log('signals internal result:', err, result, hash)
+
+                if (err || !result['blockNumber'] || !result['hash']) {
+                    resolve({
+                        blockNumber: BigInt(1),
+                        hash: '',
+                        price: BigInt(60000000000000)
+                    })
+                    return
+                }
+
+                resolve({
+                    blockNumber: BigInt(result.blockNumber),
+                    hash: result.hash,
+                    price: BigInt(60000000000000)
+                })
             })
         })
     }
 
     async getSignal(address: string, index: number): Promise<SignalResponseInterface> {
-        return new Promise((resolve) => {
-            this.contract.signals(address, index, 0, 50000, function(err, result, hash) {
-                console.log('in signals abi method', err, result, hash)
+        console.log('getSignal')
 
-                resolve(null)
+        const account = new LikeLib.Account(address)
+        const publicKey = bs58.decode(account.getAddress()).toString('hex')
+
+        return new Promise((resolve) => {
+            this.contract.signals('0x' + publicKey, index, 0, 500000, function(err, result, hash) {
+                console.log('signals result:', err, result, hash)
+
+                if (err || !result['blockNumber'] || !result['hash']) {
+                    resolve({
+                        blockNumber: null,
+                        hash: '',
+                        price: BigInt(60000000000000)
+                    })
+                    return
+                }
+
+                resolve({
+                    blockNumber: BigInt(result.blockNumber),
+                    hash: result.hash,
+                    price: BigInt(60000000000000)
+                })
+            })
+        })
+    }
+
+    async internalGetProofLen(address: string): Promise<number> {
+        console.log('internalGetProofLen', address)
+
+        return new Promise((resolve) => {
+            this.contract.getProofLen(address, 0, 500000, function(err, result, hash) {
+                console.log('internalGetProofLen result:', err, result, hash)
+
+                if (err || !result) {
+                    resolve(0)
+                    return
+                }
+
+                resolve(+result[0])
             })
         })
     }
 
     async getProofLen(address: string): Promise<number> {
-        return new Promise((resolve) => {
-            this.contract.getProofLen(address, 0, 50000, function(err, result, hash) {
-                console.log('in getProofLen abi method', err, result, hash)
+        console.log('getProofLen', address)
 
-                resolve(0)
+        const account = new LikeLib.Account(address)
+        const publicKey = bs58.decode(account.getAddress()).toString('hex')
+
+        return new Promise((resolve) => {
+            this.contract.getProofLen('0x' + publicKey, 0, 500000, function(err, result, hash) {
+                console.log('getProofLen result:', err, result, hash)
+
+                if (err || !result) {
+                    resolve(0)
+                    return
+                }
+
+                resolve(+result[0])
             })
         })
     }
 
     async getPrevBalanceHash(address: string, index: number): Promise<string> {
-        return new Promise((resolve) => {
-            this.contract.periodProofs(address, index, 0, 50000, function(err, result, hash) {
-                console.log('in getPrevBalanceHash abi method', err, result, hash)
+        console.log('getPrevBalanceHash', address, index)
 
-                resolve('prevbalancehash')
+        const account = new LikeLib.Account(address)
+        const publicKey = bs58.decode(account.getAddress()).toString('hex')
+
+        return new Promise((resolve) => {
+            this.contract.periodProofs('0x' + publicKey, index, 0, 500000, function(err, result, hash) {
+                console.log('getPrevBalanceHash result:', err, result, hash)
+
+                if (err || !result) {
+                    resolve('')
+                    return
+                }
+
+                resolve(result.newBalanceHash)
             })
         })
     }
 
     async addPeriodProof(witnessProof: WitnessProofRequestInterface, prices: bigint[]): Promise<void> {
-        throw new Error("Method not implemented.");
-    //     let proof = {
-    //         pi_a: [this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_a[0]), this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_a[1])],
-    //         pi_b: [[
-    //             this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_b[0][0]), this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_b[0][1])
-    //         ], [
-    //             this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_b[1][0]), this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_b[1][1])
-    //         ]],
-    //         pi_c: [this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_c[0]), this.web3.eth.abi.encodeParameter('uint256', witnessProof.pi_c[1])]
-    //     };
+        console.log('addPeriodProof', witnessProof, prices)
 
-    //   await this.contract.methods
-    //       .addPeriodProof(witnessProof.publicSignals[1], proof, witnessProof.publicSignals[0], currentBlock)
-    //       .send({ from: this.account })
-    }
+        const currentBlock = 10
 
-    async getTradersCount(): Promise<number> {
-        return new Promise((resolve) => {
-            this.contract.getTradersCount(0, 50000, function(err, result, hash) {
-                console.log('in getTradersCount abi method', err, result, hash)
+        let proof = {
+            pi_a: witnessProof.pi_a.slice(0, 2),
+            pi_b: [witnessProof.pi_b[0].slice(0, 2), witnessProof.pi_b[1].slice(0, 2)],
+            pi_c: witnessProof.pi_c.slice(0, 2)
+        };
 
-                resolve(0)
+        return new Promise((resolve, reject) => {
+            this.contract.addPeriodProof(witnessProof.publicSignals[1], proof, witnessProof.publicSignals[0], currentBlock, 0, 500000, function(err, result, hash) {
+                console.log('addPeriodProof result:', err, result, hash)
+
+                if (err || !result) {
+                    reject()
+                    return
+                }
+
+                resolve()
             })
         })
     }
 
-    async getTrader(index: number): Promise<TraderResponseInterface> {
-        return new Promise((resolve) => {
-            this.contract.traders(index, 0, 50000, function(err, result, hash) {
-                console.log('in gettrader abi method', err, result, hash)
+    async getTradersCount(): Promise<number> {
+        console.log('getTradersCount')
 
-                resolve(null)
+        const publicKey = bs58.decode(this.account.getAddress()).toString('hex')
+
+        return new Promise((resolve) => {
+            this.contract.getTradersCount(0, 500000, function(err, result, hash) {
+                console.log('getTradersCount result:', err, result, hash)
+
+                if (err || !result) {
+                    resolve(0)
+                    return
+                }
+
+                resolve(+result[0])
+            })
+        })
+    }
+
+    async getTrader(index: number|null): Promise<TraderResponseInterface> {
+        console.log('traders', index)
+        const address: string = await new Promise((resolve) => {
+            this.contract.traders(index, 0, 500000, async function(err, result, hash) {
+                console.log('traders result:', err, result, hash)
+
+                if (err || !result[0]) {
+                    resolve(null)
+                    return
+                }
+
+                resolve(result[0])
+            })
+        })
+
+        return {
+            address: address,
+            email: await this.internalGetEmail(address),
+            signalsCount: 0,
+            proofsCount: await this.internalGetProofLen(address),
+            creationBlockNumber: BigInt(10),
+        }
+    }
+
+    private async internalGetEmail(address: string): Promise<string> {
+        console.log('internalGetEmail')
+
+        return new Promise((resolve) => {
+            this.contract.names(address, 0, 500000, function(err, result, hash) {
+                console.log('names result:', err, result, hash)
+
+                if (err || !result[0]) {
+                    resolve('')
+                    return
+                }
+
+                resolve(result[0])
             })
         })
     }
 
     async getEmail(address: string): Promise<string> {
-        return new Promise((resolve) => {
-            this.contract.emails(address, 0, 50000, function(err, result, hash) {
-                console.log('in emails abi method', err, result, hash)
+        console.log('getEmail')
 
-                resolve('myemailfromabi')
+        const account = new LikeLib.Account(address)
+        const publicKey = bs58.decode(account.getAddress()).toString('hex')
+
+        return new Promise((resolve) => {
+            this.contract.names('0x' + publicKey, 0, 500000, function(err, result, hash) {
+                console.log('names result:', err, result, hash)
+
+                if (err || !result[0]) {
+                    resolve('')
+                    return
+                }
+
+                resolve(result[0])
+            })
+        })
+    }
+
+    async internalGetPeriodProofs(address: string, index: number): Promise<PeriodProofResponseInterface> {
+        console.log('getPeriodProofs', address, index)
+
+        return new Promise((resolve) => {
+            this.contract.periodProofs(address, index, 0, 500000, function(err, result, hash) {
+                console.log('getPeriodProofs result:', err, result, hash)
+
+                if (err || !result) {
+                    resolve(null)
+                    return
+                }
+
+                resolve({
+                    y: +result.yield,
+                    newBalanceHash: result.newBalanceHash,
+                    blockNumber: BigInt(result.blockNumber),
+                    proof: result.proof,
+                    prices: [BigInt(60000000000000)]
+                })
             })
         })
     }
 
     async getPeriodProofs(address: string, index: number): Promise<PeriodProofResponseInterface> {
+        console.log('getPeriodProofs', address, index)
+
+        const account = new LikeLib.Account(address)
+        const publicKey = bs58.decode(account.getAddress()).toString('hex')
+
         return new Promise((resolve) => {
-            this.contract.periodProofs(address, index, 0, 50000, function(err, result, hash) {
-                console.log('in periodProofs abi method', err, result, hash)
+            this.contract.periodProofs('0x' + publicKey, index, 0, 500000, function(err, result, hash) {
+                console.log('getPeriodProofs result:', err, result, hash)
 
-                resolve(null)
-            })
-        })
-    }
+                if (err || !result) {
+                    resolve(null)
+                    return
+                }
 
-    async getPeriodProofsPage(address: string, index: number): Promise<PeriodProofResponseInterface[]> {
-        return new Promise((resolve) => {
-            // todo WRONG method!
-            this.contract.periodProofs(address, index, 0, 50000, function(err, result, hash) {
-                console.log('in periodProofsPage abi method', err, result, hash)
-
-                resolve([])
+                resolve({
+                    y: +result.yield,
+                    newBalanceHash: result.newBalanceHash,
+                    blockNumber: BigInt(result.blockNumber),
+                    proof: result.proof,
+                    prices: [BigInt(60000000000000)]
+                })
             })
         })
     }
 
     async getTimestampByBlockNumber(blockNumber: bigint): Promise<number> {
-        throw new Error("Method not implemented.");
+        console.log('getTimestampByBlockNumber')
+
+        console.log('getTimestampByBlockNumber result', 1636326046 - Number(blockNumber)/10)
+
+        return 1636326046 - Number(blockNumber)/10
     }
 }
