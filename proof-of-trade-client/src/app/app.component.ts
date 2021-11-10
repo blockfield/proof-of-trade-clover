@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import MathHelper from './core/helpers/math.helper';
+import { CoinService } from './modules/shared/services/coin.service';
+import { PriceService } from './modules/shared/services/price.service';
 
 @Component({
   selector: 'app-root',
@@ -13,10 +16,14 @@ export class AppComponent implements OnInit {
   public provingKey: ArrayBuffer|null = null;
   public income: object;
 
-  constructor() {}
+  constructor(
+    private coinService: CoinService,
+    private priceService: PriceService,
+  ) {}
 
   ngOnInit(): void {
     this.initKeys()
+    this.initPrices()
   }
 
   private initKeys(): void {
@@ -38,5 +45,19 @@ export class AppComponent implements OnInit {
     }).then( (b: object) => {
         this.income = b;
     });
+  }
+
+  private initPrices(): void {
+    this.priceService.subscribeToBtcPrice()
+
+    setInterval(() => {
+      this.coinService.getBtcPrice().subscribe(
+        (response: any) => {
+          let price = Math.floor(response.data[0].quote.USD.price)
+
+          this.priceService.nextBtcPrice(MathHelper.decimalDigitsNumber(price))
+        }
+      )
+    }, 2000)
   }
 }

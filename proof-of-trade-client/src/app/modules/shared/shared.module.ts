@@ -1,4 +1,5 @@
 import { ModuleWithProviders, NgModule, Type } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 import { ToastrModule } from 'ngx-toastr';
 import { TimeagoModule } from 'ngx-timeago';
 import { ClipboardModule } from 'ngx-clipboard';
@@ -24,6 +25,7 @@ import { NoCommaPipe } from './pipes/no-comma.pipe';
     ToastrModule.forRoot(),
     TimeagoModule.forRoot(),
     ClipboardModule,
+    HttpClientModule,
   ],
   providers: [],
 })
