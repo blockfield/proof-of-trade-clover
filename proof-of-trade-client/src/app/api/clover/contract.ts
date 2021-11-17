@@ -105,7 +105,7 @@ export class Contract implements SmartContractInterface {
                     resolve({
                         blockNumber: BigInt(1),
                         hash: '',
-                        price: BigInt(60000000000000)
+                        price: BigInt(index%2 === 0 ? 66560000000000 : 66590000000000)
                     })
                     return
                 }
@@ -113,7 +113,7 @@ export class Contract implements SmartContractInterface {
                 resolve({
                     blockNumber: BigInt(result.blockNumber),
                     hash: result.hash,
-                    price: BigInt(60000000000000)
+                    price: BigInt(index%2 === 0 ? 66560000000000 : 66590000000000)
                 })
             })
         })
@@ -133,7 +133,7 @@ export class Contract implements SmartContractInterface {
                     resolve({
                         blockNumber: null,
                         hash: '',
-                        price: BigInt(60000000000000)
+                        price: BigInt(index%2 === 0 ? 66560000000000 : 66590000000000)
                     })
                     return
                 }
@@ -141,7 +141,7 @@ export class Contract implements SmartContractInterface {
                 resolve({
                     blockNumber: BigInt(result.blockNumber),
                     hash: result.hash,
-                    price: BigInt(60000000000000)
+                    price: BigInt(index%2 === 0 ? 66560000000000 : 66590000000000)
                 })
             })
         })
@@ -326,7 +326,7 @@ export class Contract implements SmartContractInterface {
                     newBalanceHash: result.newBalanceHash,
                     blockNumber: BigInt(result.blockNumber),
                     proof: result.proof,
-                    prices: [BigInt(60000000000000)]
+                    prices: [BigInt(66590000000000)]
                 })
             })
         })
@@ -352,7 +352,7 @@ export class Contract implements SmartContractInterface {
                     newBalanceHash: result.newBalanceHash,
                     blockNumber: BigInt(result.blockNumber),
                     proof: result.proof,
-                    prices: [BigInt(60000000000000)]
+                    prices: [BigInt(66590000000000)]
                 })
             })
         })

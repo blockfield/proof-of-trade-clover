@@ -29,7 +29,6 @@ export class ZkService {
   }
 
   private async internalProve(proofModel: ProofModel): Promise<void> {
-    console.log('internal prove', proofModel)
     const address = this.walletService.getAddress()
     
     const len = await this.contract.getTradeLen()
@@ -38,7 +37,8 @@ export class ZkService {
 
     const price_a = MathHelper.floorNumber(proofModel.proofs[0].price)
     const price_b = MathHelper.floorNumber(proofModel.proofs[1].price)
-    const price_now = MathHelper.removeDecimalDigitsNumber(this.priceService.getBtcPriceValue())
+    // const price_now = MathHelper.removeDecimalDigitsNumber(this.priceService.getBtcPriceValue())
+    const price_now = MathHelper.removeDecimalDigitsNumber(price_b)
 
     const proofLen = await this.contract.getProofLen(address)
 
@@ -92,7 +92,9 @@ export class ZkService {
 
     const price_a = MathHelper.bigIntToFloorNumber(a.price)
     const price_b = MathHelper.bigIntToFloorNumber(b.price)
-    const price_now = MathHelper.bigIntToFloorNumber(periodProof.prices[0])
+    const price_now = price_b
+    // const price_now = MathHelper.bigIntToFloorNumber(periodProof.prices[0])
+    // const price_now = MathHelper.removeDecimalDigitsNumber(665000000/*this.priceService.getBtcPriceValue()*/)
     
     let previousBalanceHash = '639470893622803446635721399483204517617715645899470263648676575355455357367'
     if (proofId !== 0) {

@@ -66,16 +66,20 @@ export class TraderService {
 
     let proof: ProofItem[] = []
     let prevProofBalance = MathHelper.decimalDigitsNumber(SharedConsts.initialUsdBalance)
-    let prevTimestamp = await this.contract.getTimestampByBlockNumber(creationBlockNumber)
+    // let prevTimestamp = await this.contract.getTimestampByBlockNumber(creationBlockNumber)
     for (let i = 0; i < periodProofList.length; i++) {
       const periodProof = periodProofList[i]
 
       const currentTimestamp = await this.contract.getTimestampByBlockNumber(periodProof.blockNumber)
 
-      proof.push(new ProofItem(i, periodProof.y, prevProofBalance, new Date(prevTimestamp), new Date(currentTimestamp)))
+      let prevDate = new Date()
+      let currentDate = new Date()
+      prevDate.setMinutes(currentDate.getMinutes() - 1)
+
+      proof.push(new ProofItem(i, periodProof.y, prevProofBalance, prevDate, currentDate))
 
       prevProofBalance = periodProof.y
-      prevTimestamp = currentTimestamp
+      // prevTimestamp = currentTimestamp
     }
 
     return proof

@@ -31,17 +31,21 @@ export class TradersService {
 
     let proof: ProofItem[] = []
     let prevProofBalance = MathHelper.decimalDigitsNumber(SharedConsts.initialUsdBalance)
-    let prevTimestamp = await this.contract.getTimestampByBlockNumber(trader.creationBlockNumber)
-    const createdDate = new Date(prevTimestamp)
+    // let prevTimestamp = await this.contract.getTimestampByBlockNumber(trader.creationBlockNumber)
+    const createdDate = new Date()
     for (let i = 0; i < periodProofList.length; i++) {
       const periodProof = periodProofList[i]
 
       const currentTimestamp = await this.contract.getTimestampByBlockNumber(periodProof.blockNumber)
 
-      proof.push(new ProofItem(i, periodProof.y, prevProofBalance, new Date(prevTimestamp), new Date(currentTimestamp)))
+      let prevDate = new Date()
+      let currentDate = new Date()
+      prevDate.setMinutes(currentDate.getMinutes() - 1)
+
+      proof.push(new ProofItem(i, periodProof.y, prevProofBalance, prevDate, currentDate))
 
       prevProofBalance = periodProof.y
-      prevTimestamp = currentTimestamp
+      // prevTimestamp = currentTimestamp
     }
 
     return new TraderModel(index, trader.email, trader.address, proof, createdDate)
@@ -56,13 +60,30 @@ export class TradersService {
   }
 
   private async nextTrader(tradersSubject: Subject<StrategyModel>): Promise<void> {
+
     const now = new Date()
     const tradersCount = await this.contract.getTradersCount()
+
+    tradersSubject.next(
+      new StrategyModel(
+        1, 'HonestTrader', 'asdf', [0, 1, 2],
+        1.2, 2,
+        VerificationProverEnum.Unverified, new Date(2021, 7, 14)
+      )
+    )
+
+    tradersSubject.next(
+      new StrategyModel(
+        1, 'MaliciousTrader', 'asdf', [0, 1, 2],
+        30, 1,
+        VerificationProverEnum.Unverified, new Date(2021, 10, 17)
+      )
+    )
 
     for (let i = 0; i < tradersCount; i++) {
       const traderModel = await this.getTraderModel(i)
 
-      const createdDate = traderModel.date
+      const createdDate = new Date(2021, 10, 11) // traderModel.date
       const initBalance = MathHelper.decimalDigitsNumber(SharedConsts.initialUsdBalance)
 
       let profitSum = 0
