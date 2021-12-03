@@ -1,9 +1,7 @@
 # Proof Of Trade / Clover
 Zero knowledge proving system for historical performance of trader on Clover blockchain.
 
-Demo [video](). // TODO
-
-Testnet [page](). // TODO
+Demo [video](https://www.youtube.com/watch?v=dvQGz78Rt4A).
 
 Build for [Utonhack 2021 / Clover](https://utonhack-2021.devpost.com/).
 
